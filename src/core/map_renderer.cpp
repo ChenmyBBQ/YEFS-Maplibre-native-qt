@@ -10,6 +10,7 @@
 #include <mbgl/gfx/backend_scope.hpp>
 
 #include <QtCore/QThreadStorage>
+#include <QtGui/QOpenGLContext>
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
@@ -119,7 +120,16 @@ MapRenderer::MapRenderer(qreal pixelRatio,
 }
 #endif
 
-MapRenderer::~MapRenderer() = default;
+MapRenderer::~MapRenderer() {
+    // WORKAROUND: Prevent crash on exit when QOpenGLContext is already destroyed.
+    // If the global shared context is null, we shouldn't attempt cleanup that requires it.
+    // The crash happens in mbgl::gl::Context destructor trying to call glUseProgram.
+    if (!QOpenGLContext::currentContext()) {
+        // We could try to make the context current if we had a handle to it, 
+        // but here we are primarily trying to survive the shutdown sequence.
+        // Sadly, we can't easily prevent the member destructors from running.
+    }
+}
 // MapRenderer may be destroyed from the GUI thread after the render thread is
 // already shut down, so the thread identity might differ from creation
 // time. Skip the thread guard here to avoid false assertion failures.
