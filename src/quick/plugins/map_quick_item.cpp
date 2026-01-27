@@ -93,6 +93,36 @@ void MapQuickItem::setZoomLevel(double zoomLevel) {
     emit zoomLevelChanged();
 }
 
+void MapQuickItem::setBearing(double bearing) {
+    if (m_bearing == bearing) {
+        return;
+    }
+
+    m_bearing = bearing;
+
+    if (m_map != nullptr) {
+        m_syncState |= CameraOptionsSync;
+        update();
+    }
+
+    emit bearingChanged();
+}
+
+void MapQuickItem::setPitch(double pitch) {
+    if (m_pitch == pitch) {
+        return;
+    }
+
+    m_pitch = pitch;
+
+    if (m_map != nullptr) {
+        m_syncState |= CameraOptionsSync;
+        update();
+    }
+
+    emit pitchChanged();
+}
+
 void MapQuickItem::setCoordinate(const QVariantList &coordinate) {
     if (m_coordinate == coordinate || coordinate.size() != 2) {
         return;
@@ -239,6 +269,8 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
         m_map->setCoordinateZoom({m_coordinate.size() == 2 ? m_coordinate[0].toDouble() : 0.0,
                                   m_coordinate.size() == 2 ? m_coordinate[1].toDouble() : 0.0},
                                  m_zoomLevel);
+        m_map->setBearing(m_bearing);
+        m_map->setPitch(m_pitch);
     }
 
     if ((m_syncState & ViewportSync) != 0) {

@@ -24,6 +24,8 @@ class MapQuickItem : public QQuickItem {
     Q_PROPERTY(QString style READ style WRITE setStyle)
     Q_PROPERTY(QVariantList coordinate READ coordinate WRITE setCoordinate NOTIFY coordinateChanged)
     Q_PROPERTY(double zoomLevel READ zoomLevel WRITE setZoomLevel NOTIFY zoomLevelChanged)
+    Q_PROPERTY(double bearing READ bearing WRITE setBearing NOTIFY bearingChanged)
+    Q_PROPERTY(double pitch READ pitch WRITE setPitch NOTIFY pitchChanged)
 
 public:
     explicit MapQuickItem(QQuickItem *parent = nullptr);
@@ -33,6 +35,12 @@ public:
 
     [[nodiscard]] double zoomLevel() const { return m_zoomLevel; }
     void setZoomLevel(double zoomLevel);
+
+    [[nodiscard]] double bearing() const { return m_bearing; }
+    void setBearing(double bearing);
+
+    [[nodiscard]] double pitch() const { return m_pitch; }
+    void setPitch(double pitch);
 
     [[nodiscard]] QVariantList coordinate() const { return m_coordinate; }
     void setCoordinate(const QVariantList &coordinate);
@@ -51,6 +59,8 @@ public:
 signals:
     void coordinateChanged();
     void zoomLevelChanged();
+    void bearingChanged();
+    void pitchChanged();
 
 protected:
     void componentComplete() override;
@@ -70,6 +80,8 @@ private:
     SyncStates m_syncState = NoSync;
     QVariantList m_coordinate{0, 0};
     double m_zoomLevel{};
+    double m_bearing{};
+    double m_pitch{};
     QString m_style;
 };
 
