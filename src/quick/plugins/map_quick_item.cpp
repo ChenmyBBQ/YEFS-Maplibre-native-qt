@@ -53,12 +53,12 @@ void MapQuickItem::initialize() {
     m_map = std::make_unique<Map>(nullptr, m_settings, viewportSize, pixelRatio);
     m_map->setConnectionEstablished();
 
-    // Set default style
+    // Set default style (仅在 URL 非空时加载)
     if (!m_style.isEmpty()) {
         m_map->setStyleUrl(m_style);
-    } else if (!m_settings.styles().empty()) {
+    } else if (!m_settings.styles().empty() && !m_settings.styles().front().url.isEmpty()) {
         m_map->setStyleUrl(m_settings.styles().front().url);
-    } else if (!m_settings.providerStyles().empty()) {
+    } else if (!m_settings.providerStyles().empty() && !m_settings.providerStyles().front().url.isEmpty()) {
         m_map->setStyleUrl(m_settings.providerStyles().front().url);
     }
 
@@ -70,6 +70,12 @@ void MapQuickItem::setStyle(const QString &style) {
         return;
     }
     m_style = style;
+
+    // 如果地图已初始化，立即应用新样式
+    if (m_map != nullptr && !m_style.isEmpty()) {
+        m_map->setStyleUrl(m_style);
+        update();
+    }
 }
 
 void MapQuickItem::setZoomLevel(double zoomLevel) {
