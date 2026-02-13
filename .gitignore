@@ -4,3 +4,5 @@
 compile_commands.json
 docs/output
 .venv
+src/location/plugins/.qmlls.ini
+src/quick/plugins/.qmlls.ini
