@@ -35,6 +35,10 @@ public:
     void restoreFramebufferBinding();
     void updateRenderer(const mbgl::Size &newSize, uint32_t fbo);
 
+    /// Mark the OpenGL context as lost so that the destructor skips GL cleanup.
+    /// This prevents crashes when QOpenGLContext is already destroyed at shutdown.
+    void markContextLost();
+
     // Get the current framebuffer texture ID for direct texture sharing
     [[nodiscard]] unsigned int getFramebufferTextureId() const;
 

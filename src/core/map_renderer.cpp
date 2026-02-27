@@ -122,12 +122,17 @@ MapRenderer::MapRenderer(qreal pixelRatio,
 
 MapRenderer::~MapRenderer() {
     // WORKAROUND: Prevent crash on exit when QOpenGLContext is already destroyed.
-    // If the global shared context is null, we shouldn't attempt cleanup that requires it.
-    // The crash happens in mbgl::gl::Context destructor trying to call glUseProgram.
+    // The crash happens because both mbgl::Renderer and the backend's
+    // mbgl::gl::Context call OpenGL functions (e.g. glUseProgram) in their
+    // destructors, but QOpenGLContext::currentContext() returns nullptr at
+    // that point, causing a segfault in the gl_functions.cpp lambda wrappers.
+    //
+    // When no valid OpenGL context exists, disable GL cleanup and leak the
+    // renderer. The OS will reclaim all GPU resources on process exit anyway.
+    // This is the same approach used by the Android backend (markContextLost).
     if (!QOpenGLContext::currentContext()) {
-        // We could try to make the context current if we had a handle to it, 
-        // but here we are primarily trying to survive the shutdown sequence.
-        // Sadly, we can't easily prevent the member destructors from running.
+        m_backend.markContextLost();
+        (void)m_renderer.release();
     }
 }
 // MapRenderer may be destroyed from the GUI thread after the render thread is

@@ -347,6 +347,14 @@ void OpenGLRendererBackend::setExternalDrawable(unsigned int textureId, const mb
     setViewport(0, 0, size);
 }
 
+void OpenGLRendererBackend::markContextLost() {
+    // Release the mbgl::gfx::Context to prevent its destructor from calling
+    // OpenGL functions (e.g. glUseProgram) after QOpenGLContext is destroyed.
+    // The 'context' member is a protected unique_ptr in the base class.
+    // Intentionally leak it — the OS reclaims GPU resources on process exit.
+    (void)context.release();
+}
+
 /*! \endcond PRIVATE */
 
 } // namespace QMapLibre
