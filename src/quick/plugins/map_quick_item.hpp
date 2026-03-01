@@ -45,6 +45,7 @@ public:
     [[nodiscard]] QVariantList coordinate() const { return m_coordinate; }
     void setCoordinate(const QVariantList &coordinate);
     Q_INVOKABLE void setCoordinateFromPixel(const QPointF &pixel);
+    Q_INVOKABLE QVariantList coordinateForPixel(const QPointF &pixel) const;
 
     Q_INVOKABLE void pan(const QPointF &offset);
     Q_INVOKABLE void scale(double scale, const QPointF &center);

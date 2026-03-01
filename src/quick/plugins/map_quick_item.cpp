@@ -153,6 +153,14 @@ void MapQuickItem::setCoordinateFromPixel(const QPointF &pixel) {
     setCoordinate({coordinate.first, coordinate.second});
 }
 
+QVariantList MapQuickItem::coordinateForPixel(const QPointF &pixel) const {
+    if (m_map == nullptr) {
+        return {};
+    }
+    const Coordinate coordinate = m_map->coordinateForPixel(pixel);
+    return {coordinate.first, coordinate.second};
+}
+
 void MapQuickItem::pan(const QPointF &offset) {
     if (m_map == nullptr) {
         return;
