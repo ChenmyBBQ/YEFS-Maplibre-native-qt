@@ -18,6 +18,7 @@
 #include <QMapLibre/Map>
 
 #include <QtCore/QTimer>
+#include <QtCore/QDebug>
 #include <QtQuick/QQuickWindow>
 #include <QtQuick/QSGRectangleNode>
 #ifdef MLN_RENDER_BACKEND_OPENGL
@@ -32,6 +33,11 @@ constexpr int intervalTime{250};
 
 constexpr double minZoomLevel{0.0};
 constexpr double maxZoomLevel{20.0};
+
+bool isJsonStyleString(const QString &style) {
+    const QString trimmed = style.trimmed();
+    return trimmed.startsWith('{') || trimmed.startsWith('[');
+}
 } // namespace
 
 namespace QMapLibre {
@@ -53,9 +59,13 @@ void MapQuickItem::initialize() {
     m_map = std::make_unique<Map>(nullptr, m_settings, viewportSize, pixelRatio);
     m_map->setConnectionEstablished();
 
-    // Set default style (仅在 URL 非空时加载)
+    // Set default style
     if (!m_style.isEmpty()) {
-        m_map->setStyleUrl(m_style);
+        if (isJsonStyleString(m_style)) {
+            m_map->setStyleJson(m_style);
+        } else {
+            m_map->setStyleUrl(m_style);
+        }
     } else if (!m_settings.styles().empty() && !m_settings.styles().front().url.isEmpty()) {
         m_map->setStyleUrl(m_settings.styles().front().url);
     } else if (!m_settings.providerStyles().empty() && !m_settings.providerStyles().front().url.isEmpty()) {
@@ -73,7 +83,11 @@ void MapQuickItem::setStyle(const QString &style) {
 
     // 如果地图已初始化，立即应用新样式
     if (m_map != nullptr && !m_style.isEmpty()) {
-        m_map->setStyleUrl(m_style);
+        if (isJsonStyleString(m_style)) {
+            m_map->setStyleJson(m_style);
+        } else {
+            m_map->setStyleUrl(m_style);
+        }
         update();
     }
 }
@@ -269,6 +283,10 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
 #endif
         QObject::connect(m_map.get(), &Map::needsRendering, this, &QQuickItem::update);
         QObject::connect(m_map.get(), &Map::mapChanged, this, &MapQuickItem::onMapChanged);
+        QObject::connect(m_map.get(), &Map::mapLoadingFailed, this, [this](Map::MapLoadingFailure failure, const QString &reason) {
+            qWarning() << "[MapQuickItem] mapLoadingFailed:" << failure << reason;
+            QTimer::singleShot(intervalTime, this, &QQuickItem::update);
+        });
 
         m_syncState = ViewportSync | CameraOptionsSync;
 
@@ -299,8 +317,11 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
 }
 
 void MapQuickItem::onMapChanged(Map::MapChange change) {
-    if (change == Map::MapChangeDidFinishLoadingMap) {
+    if (change == Map::MapChangeDidFinishLoadingMap || change == Map::MapChangeDidFinishLoadingStyle) {
         // TODO: make it more elegant
+        QTimer::singleShot(intervalTime, this, &QQuickItem::update);
+    } else if (change == Map::MapChangeDidFailLoadingMap) {
+        qWarning() << "[MapQuickItem] MapChangeDidFailLoadingMap";
         QTimer::singleShot(intervalTime, this, &QQuickItem::update);
     }
 }
