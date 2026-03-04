@@ -65,12 +65,22 @@ void TextureNodeOpenGL::render(QQuickWindow *window) {
     // Update the size
     m_map->updateRenderer(m_size, m_pixelRatio, m_fbo);
 
+    const QSize physicalSize = m_size * m_pixelRatio;
+
     // Save and restore OpenGL state to prevent conflicts
     GLint prevFbo{};
     gl->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFbo);
 
+    // Root fix: clear target FBO before style render to avoid random colors from uninitialized buffers
+    gl->glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+    gl->glViewport(0, 0, physicalSize.width(), physicalSize.height());
+    gl->glClearColor(0.88f, 0.88f, 0.88f, 1.0f);
+    gl->glClear(GL_COLOR_BUFFER_BIT);
+    gl->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
+
     // Begin external commands before MapLibre render
     window->beginExternalCommands();
+
 
     m_map->render();
 
@@ -87,7 +97,6 @@ void TextureNodeOpenGL::render(QQuickWindow *window) {
     const GLuint maplibreTextureId = m_map->getFramebufferTextureId();
     if (maplibreTextureId > 0) {
         // Wrap it directly as QSGTexture (zero-copy!)
-        const QSize physicalSize = m_size * m_pixelRatio;
         QSGTexture *qtTexture = QNativeInterface::QSGOpenGLTexture::fromNative(
             maplibreTextureId, window, physicalSize, QQuickWindow::TextureHasAlphaChannel);
 
@@ -97,6 +106,11 @@ void TextureNodeOpenGL::render(QQuickWindow *window) {
             setFiltering(QSGTexture::Linear);
             setOwnsTexture(false); // Don't delete MapLibre's texture!
             markDirty(QSGNode::DirtyMaterial);
+
+            // 通知首帧已落盘：此时 Qt SceneGraph 已持有有效纹理，遮罩可以安全撤除
+            if (m_firstFrameCallback) {
+                m_firstFrameCallback();
+            }
         }
     }
 }

@@ -7,6 +7,7 @@
 #include <QtCore/qtmetamacros.h>
 #include <QMapLibre/Map>
 #include <QMapLibre/Settings>
+#include <atomic>
 
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QSGNode>
@@ -62,6 +63,9 @@ signals:
     void zoomLevelChanged();
     void bearingChanged();
     void pitchChanged();
+    void styleLoaded();    // 样式下载并解析完毕
+    void mapFullyLoaded(); // MapLibre 渲染线程报告所有瓦片完成
+    void firstFrameReady(); // Qt SceneGraph 已持有有效纹理，遮罩可安全撤除（根本解决闪屏）
 
 protected:
     void componentComplete() override;
@@ -84,6 +88,10 @@ private:
     double m_bearing{};
     double m_pitch{};
     QString m_style;
+
+    // mapFullyLoaded 到达后置 true，下一次 render() 触发 firstFrameReady 后自动清零
+    // 用 atomic 保证主线程写、渲染线程读的线程安全
+    std::atomic<bool> m_awaitFirstFrameAfterLoad{false};
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(MapQuickItem::SyncStates)

@@ -18,7 +18,6 @@
 #include <QMapLibre/Map>
 
 #include <QtCore/QTimer>
-#include <QtCore/QDebug>
 #include <QtQuick/QQuickWindow>
 #include <QtQuick/QSGRectangleNode>
 #ifdef MLN_RENDER_BACKEND_OPENGL
@@ -237,8 +236,6 @@ QSGNode *MapQuickItem::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *da
     }
 
     root->setRect(boundingRect());
-    // TODO: background color
-    // root->setColor(m_color);
 
     QSGNode *content = root->childCount() > 0 ? root->firstChild() : nullptr;
     content = updateMapNode(content);
@@ -288,6 +285,14 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
             QTimer::singleShot(intervalTime, this, &QQuickItem::update);
         });
 
+        // 注入首帧回调：只有 mapFullyLoaded 打开开关后的下一次 render()，才发出 firstFrameReady
+        // exchange(false) 保证每次全量吐只触发一次
+        mbglNode->setFirstFrameCallback([this]() {
+            if (m_awaitFirstFrameAfterLoad.exchange(false)) {
+                QMetaObject::invokeMethod(this, &MapQuickItem::firstFrameReady, Qt::QueuedConnection);
+            }
+        });
+
         m_syncState = ViewportSync | CameraOptionsSync;
 
         node = mbglNode.release();
@@ -317,11 +322,22 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
 }
 
 void MapQuickItem::onMapChanged(Map::MapChange change) {
-    if (change == Map::MapChangeDidFinishLoadingMap || change == Map::MapChangeDidFinishLoadingStyle) {
+    if (change == Map::MapChangeDidFinishLoadingStyle) {
+        emit styleLoaded();
+    } else if (change == Map::MapChangeDidFinishRenderingMapFullyRendered) {
+        // 只有所有请求的瓦片都已到达（isFullyLoaded=true）时才开闸
+        // 否则第一个空白渲染帧就会触发 firstFrameReady，遮罩淡出时瓦片还未到
+        if (m_map && m_map->isFullyLoaded()) {
+            m_awaitFirstFrameAfterLoad = true;
+            emit mapFullyLoaded();
+        }
+    }
+
+    if (change == Map::MapChangeDidFinishLoadingMap || change == Map::MapChangeDidFinishLoadingStyle || change == Map::MapChangeDidFinishRenderingMapFullyRendered) {
         // TODO: make it more elegant
         QTimer::singleShot(intervalTime, this, &QQuickItem::update);
     } else if (change == Map::MapChangeDidFailLoadingMap) {
-        qWarning() << "[MapQuickItem] MapChangeDidFailLoadingMap";
+        qWarning() << "[MapQuickItem] MapChangeDidFailLoadingMap - Network or parse error.";
         QTimer::singleShot(intervalTime, this, &QQuickItem::update);
     }
 }
