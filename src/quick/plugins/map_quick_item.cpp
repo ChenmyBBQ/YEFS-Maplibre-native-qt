@@ -326,10 +326,14 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
 void MapQuickItem::onMapChanged(Map::MapChange change) {
     if (change == Map::MapChangeDidFinishLoadingStyle) {
         emit styleLoaded();
+    } else if (change == Map::MapChangeWillLoadMap || change == Map::MapChangeWillChangeStyle) {
+        // 新样式开始加载：重置"允许 arm 一次"标志，准备接受下一次首帧信号
+        m_expectingFirstFrame = true;
     } else if (change == Map::MapChangeDidFinishRenderingMapFullyRendered) {
-        // 只有所有请求的瓦片都已到达（isFullyLoaded=true）时才开闸
-        // 否则第一个空白渲染帧就会触发 firstFrameReady，遮罩淡出时瓦片还未到
-        if (m_map && m_map->isFullyLoaded()) {
+        // 只有 isFullyLoaded=true 且本次样式变化尚未 arm 过门控时才开闸，
+        // 防止快速底图多批次瓦片触发多次 arm → 多次 firstFrameReady → 淡出期间粉色透出
+        if (m_map && m_map->isFullyLoaded() && m_expectingFirstFrame) {
+            m_expectingFirstFrame = false;
             m_awaitFirstFrameAfterLoad = true;
             emit mapFullyLoaded();
         }

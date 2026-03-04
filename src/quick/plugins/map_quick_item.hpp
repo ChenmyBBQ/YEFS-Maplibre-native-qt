@@ -92,6 +92,11 @@ private:
     // mapFullyLoaded 到达后置 true，下一次 render() 触发 firstFrameReady 后自动清零
     // 用 atomic 保证主线程写、渲染线程读的线程安全
     std::atomic<bool> m_awaitFirstFrameAfterLoad{false};
+
+    // 每次样式变化（WillLoadMap/WillChangeStyle）时置 true，允许 arm 一次门控；
+    // 首次 DidFinishRenderingMapFullyRendered 且 isFullyLoaded=true 后清零，
+    // 防止后续重复触发 DidFinishRenderingMapFullyRendered 反复 arm 门控
+    bool m_expectingFirstFrame{true};
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(MapQuickItem::SyncStates)
