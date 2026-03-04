@@ -17,6 +17,7 @@
 
 #include <QMapLibre/Map>
 
+#include <QtCore/QDateTime>
 #include <QtCore/QDebug>
 #include <QtCore/QTimer>
 #include <QtQuick/QQuickWindow>
@@ -290,6 +291,8 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
         // exchange(false) 保证每次全量吐只触发一次
         mbglNode->setFirstFrameCallback([this]() {
             const bool wasArmed = m_awaitFirstFrameAfterLoad.exchange(false);
+            qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                     << "[MapQuickItem] firstFrameCallback: wasArmed=" << wasArmed;
             if (wasArmed) {
                 QMetaObject::invokeMethod(this, &MapQuickItem::firstFrameReady, Qt::QueuedConnection);
             }
@@ -324,17 +327,27 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
 }
 
 void MapQuickItem::onMapChanged(Map::MapChange change) {
+    qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+             << "[MapQuickItem] mapChanged:" << static_cast<int>(change)
+             << "isFullyLoaded=" << (m_map ? m_map->isFullyLoaded() : false)
+             << "expectingFirst=" << m_expectingFirstFrame
+             << "awaitArmed=" << m_awaitFirstFrameAfterLoad.load();
+
     if (change == Map::MapChangeDidFinishLoadingStyle) {
         emit styleLoaded();
-    } else if (change == Map::MapChangeWillLoadMap || change == Map::MapChangeWillChangeStyle) {
+    } else if (change == Map::MapChangeWillStartLoadingMap) {
         // 新样式开始加载：重置"允许 arm 一次"标志，准备接受下一次首帧信号
         m_expectingFirstFrame = true;
+        qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                 << "[MapQuickItem] WillStartLoadingMap -> expectingFirstFrame=true";
     } else if (change == Map::MapChangeDidFinishRenderingMapFullyRendered) {
         // 只有 isFullyLoaded=true 且本次样式变化尚未 arm 过门控时才开闸，
         // 防止快速底图多批次瓦片触发多次 arm → 多次 firstFrameReady → 淡出期间粉色透出
         if (m_map && m_map->isFullyLoaded() && m_expectingFirstFrame) {
             m_expectingFirstFrame = false;
             m_awaitFirstFrameAfterLoad = true;
+            qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                     << "[MapQuickItem] GATE ARMED (isFullyLoaded=true, expectingFirst was true)";
             emit mapFullyLoaded();
         }
     }
