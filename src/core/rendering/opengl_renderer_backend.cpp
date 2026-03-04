@@ -206,9 +206,11 @@ void OpenGLRendererBackend::updateRenderer(const mbgl::Size &newSize, uint32_t f
                 // Framebuffer is ready
             }
 
-            // Initial clear when creating the framebuffer
+            // 初始清除：用与 QML 遮罩相同的蓝色 (#b8d9f0) 初始化纹理内容，
+            // 避免 VRAM 残留（粉色/洋红）在遮罩淡出时透出；
+            // alpha=1.0 确保纹理被视为完全不透明，防止 Qt 场景图 Alpha 混合到窗口背景
             gl->glViewport(0, 0, width, height);
-            gl->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            gl->glClearColor(0.722f, 0.851f, 0.941f, 1.0f);  // #b8d9f0
             gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         }
 

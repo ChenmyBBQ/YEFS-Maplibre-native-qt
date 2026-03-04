@@ -100,8 +100,12 @@ void TextureNodeOpenGL::render(QQuickWindow *window) {
     const GLuint maplibreTextureId = m_map->getFramebufferTextureId();
     if (maplibreTextureId > 0) {
         // Wrap it directly as QSGTexture (zero-copy!)
+        // 注意：不使用 TextureHasAlphaChannel —— MapLibre 底图渲染输出始终全不透明
+        // （背景层 + 栅格/矢量瓦片覆盖全 viewport），若带 alpha 标志，Qt 场景图会把
+        // MapLibre FBO 中 alpha<1 的像素（OpenGL 初始清除为 0,0,0,0 的区域）与
+        // HusWindow 背景色做 Alpha 混合，从而在遮罩淡出期间透出窗口背景（粉色/品红）
         QSGTexture *qtTexture = QNativeInterface::QSGOpenGLTexture::fromNative(
-            maplibreTextureId, window, physicalSize, QQuickWindow::TextureHasAlphaChannel);
+            maplibreTextureId, window, physicalSize, QQuickWindow::TextureIsOpaque);
 
         if (qtTexture != nullptr) {
             setTexture(qtTexture);
