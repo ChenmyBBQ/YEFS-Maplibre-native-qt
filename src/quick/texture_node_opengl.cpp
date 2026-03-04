@@ -72,9 +72,10 @@ void TextureNodeOpenGL::render(QQuickWindow *window) {
     gl->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFbo);
 
     // Root fix: clear target FBO before style render to avoid random colors from uninitialized buffers
+    // Use the same ocean-blue as the QML loading overlay so they blend seamlessly on any visual gap
     gl->glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
     gl->glViewport(0, 0, physicalSize.width(), physicalSize.height());
-    gl->glClearColor(0.88f, 0.88f, 0.88f, 1.0f);
+    gl->glClearColor(0.722f, 0.851f, 0.941f, 1.0f);  // #b8d9f0 — matches styleTransitionOverlay
     gl->glClear(GL_COLOR_BUFFER_BIT);
     gl->glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
 

@@ -17,6 +17,7 @@
 
 #include <QMapLibre/Map>
 
+#include <QtCore/QDebug>
 #include <QtCore/QTimer>
 #include <QtQuick/QQuickWindow>
 #include <QtQuick/QSGRectangleNode>
@@ -288,7 +289,8 @@ QSGNode *MapQuickItem::updateMapNode(QSGNode *node) {
         // 注入首帧回调：只有 mapFullyLoaded 打开开关后的下一次 render()，才发出 firstFrameReady
         // exchange(false) 保证每次全量吐只触发一次
         mbglNode->setFirstFrameCallback([this]() {
-            if (m_awaitFirstFrameAfterLoad.exchange(false)) {
+            const bool wasArmed = m_awaitFirstFrameAfterLoad.exchange(false);
+            if (wasArmed) {
                 QMetaObject::invokeMethod(this, &MapQuickItem::firstFrameReady, Qt::QueuedConnection);
             }
         });
