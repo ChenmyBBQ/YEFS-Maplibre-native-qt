@@ -5,8 +5,6 @@
 #include <QtGui/qopenglcontext.h>
 #include "texture_node_opengl_p.hpp"
 
-#include <QtCore/QDateTime>
-#include <QtCore/QDebug>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
 #include <QtQuick/QQuickOpenGLUtils>
@@ -116,9 +114,6 @@ void TextureNodeOpenGL::render(QQuickWindow *window) {
 
             // 通知首帧已落盘：此时 Qt SceneGraph 已持有有效纹理，遮罩可以安全撤除
             if (m_firstFrameCallback) {
-                qDebug() << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-                         << "[TextureNode] render: valid texture textureId=" << maplibreTextureId
-                         << "-> firing firstFrameCallback";
                 m_firstFrameCallback();
             }
         }
