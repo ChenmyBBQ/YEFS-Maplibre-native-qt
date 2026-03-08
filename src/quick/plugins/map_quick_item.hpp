@@ -1,4 +1,4 @@
-// Copyright (C) 2023 MapLibre contributors
+﻿// Copyright (C) 2023 MapLibre contributors
 
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -72,6 +72,9 @@ protected:
     void geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) override;
     QSGNode *updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data) override;
 
+public slots:
+    QObject* getNativeMap() const { return m_map.get(); }
+
 private slots:
     void initialize();
     void onMapChanged(Map::MapChange change);
@@ -102,3 +105,4 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(MapQuickItem::SyncStates)
 
 } // namespace QMapLibre
+
