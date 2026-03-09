@@ -66,6 +66,7 @@ signals:
     void styleLoaded();    // 样式下载并解析完毕
     void mapFullyLoaded(); // MapLibre 渲染线程报告所有瓦片完成
     void firstFrameReady(); // Qt SceneGraph 已持有有效纹理，遮罩可安全撤除（根本解决闪屏）
+    void mapLoadFailed();
 
 protected:
     void componentComplete() override;

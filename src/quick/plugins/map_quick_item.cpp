@@ -82,7 +82,10 @@ void MapQuickItem::setStyle(const QString &style) {
         return;
     }
 
+    qDebug() << "[MapQuickItem] setStyle changed to:" << style.left(80);
     m_style = style;
+    m_expectingFirstFrame = true;
+    m_awaitFirstFrameAfterLoad = false;
 
     // 如果地图已初始化，立即应用新样式
     if (m_map != nullptr && !m_style.isEmpty()) {
@@ -347,6 +350,7 @@ void MapQuickItem::onMapChanged(Map::MapChange change) {
         QTimer::singleShot(intervalTime, this, &QQuickItem::update);
     } else if (change == Map::MapChangeDidFailLoadingMap) {
         qWarning() << "[MapQuickItem] MapChangeDidFailLoadingMap - Network or parse error.";
+        emit mapLoadFailed();
         QTimer::singleShot(intervalTime, this, &QQuickItem::update);
     }
 }
