@@ -7,8 +7,8 @@
       "displayName": "Windows configuration using Qt6 and OpenGL",
       "generator": "Ninja Multi-Config",
       "binaryDir": "${sourceParentDir}/build/qt6-Windows-OpenGL",
-      "toolchainFile": "$penv{QT_ROOT_DIR}/lib/cmake/Qt6/qt.toolchain.cmake",
       "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$penv{QT_ROOT_DIR}",
         "CMAKE_CONFIGURATION_TYPES": "Release;Debug",
         "CMAKE_POLICY_VERSION_MINIMUM": "3.19",
         "MLN_WITH_OPENGL": "ON"
@@ -19,8 +19,8 @@
       "displayName": "Windows configuration using Qt6 and Vulkan",
       "generator": "Ninja Multi-Config",
       "binaryDir": "${sourceParentDir}/build/qt6-Windows-Vulkan",
-      "toolchainFile": "$penv{QT_ROOT_DIR}/lib/cmake/Qt6/qt.toolchain.cmake",
       "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$penv{QT_ROOT_DIR}",
         "CMAKE_CONFIGURATION_TYPES": "Release;Debug",
         "CMAKE_POLICY_VERSION_MINIMUM": "3.19",
         "MLN_WITH_VULKAN": "ON"

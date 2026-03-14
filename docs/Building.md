@@ -24,6 +24,10 @@ git submodule update --init --recursive
 @note To make sure a correct version of Qt 6 is used, use the provided toolchain file
 with `-DCMAKE_TOOLCHAIN_FILE="<path-to-qt>/lib/cmake/Qt6/qt.toolchain.cmake"`
 
+On desktop platforms, especially Windows, passing `-DCMAKE_PREFIX_PATH="<path-to-qt>"`
+or setting `QT_ROOT_DIR` is usually sufficient and avoids hard failures caused by an
+unset toolchain path.
+
 A minimal example command is:
 
 ```bash
@@ -78,6 +82,10 @@ will run the macOS build with `ccache` enabled.
 It is recommended to set `QT_ROOT_DIR` environment variable as the path
 to the Qt installation to be used, mainly for mobile platforms to use
 the correct Qt version.
+
+For Windows desktop presets, `QT_ROOT_DIR` is optional but recommended.
+If it is not set, make sure Qt can still be found through `CMAKE_PREFIX_PATH`,
+`Qt6_DIR`, or your IDE's Qt kit configuration.
 
 For Android, the `ANDROID_ABI` environment variable should be set.
 
