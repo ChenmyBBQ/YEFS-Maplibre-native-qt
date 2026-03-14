@@ -9,6 +9,22 @@ Version 4.0 is a major release that includes major rendering backend changes.
 Thus it does not maintain backward compatibility with version 3.x.
 It is still in active development and API may change before the stable release.
 
+## Features
+
+- **Vector tile rendering** with full [MapLibre Style Spec](https://maplibre.org/maplibre-style-spec/) support
+- **Multiple rendering backends**: OpenGL, Vulkan (Linux/Windows/Android), Metal (macOS/iOS), WebGL 2 (WASM)
+- **Interactive camera** — pan, zoom, rotate, pitch with animated transitions
+- **Annotation API** — add/update/remove symbol, line and fill annotations at runtime
+- **Style layer & source management** — add, modify and remove layers and sources dynamically
+- **Custom rendering layers** via `CustomLayerHostInterface`
+- **Three integration paths**:
+  - C++ `QMapLibre::Map` + `QMapLibre::MapWidget` (QRhiWidget)
+  - QML `MapLibre` type (QQuickItem) with `styleLoaded`, `mapFullyLoaded` and `firstFrameReady` signals
+  - Qt Location plugin (`maplibre`) for use with Qt Location's `Map` QML type
+- **Coordinate utilities** — geographic ↔ pixel ↔ projected-metre conversions
+- **Network mode** — toggle online / offline operation globally
+- **Static (off-screen) rendering** for tile generation and testing
+
 ## Qt support
 
 This library fully supports Qt 6.5 and newer.
