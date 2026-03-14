@@ -9,21 +9,21 @@ Version 4.0 is a major release that includes major rendering backend changes.
 Thus it does not maintain backward compatibility with version 3.x.
 It is still in active development and API may change before the stable release.
 
-## Features
+## 功能特性
 
-- **Vector tile rendering** with full [MapLibre Style Spec](https://maplibre.org/maplibre-style-spec/) support
-- **Multiple rendering backends**: OpenGL, Vulkan (Linux/Windows/Android), Metal (macOS/iOS), WebGL 2 (WASM)
-- **Interactive camera** — pan, zoom, rotate, pitch with animated transitions
-- **Annotation API** — add/update/remove symbol, line and fill annotations at runtime
-- **Style layer & source management** — add, modify and remove layers and sources dynamically
-- **Custom rendering layers** via `CustomLayerHostInterface`
-- **Three integration paths**:
-  - C++ `QMapLibre::Map` + `QMapLibre::MapWidget` (QRhiWidget)
-  - QML `MapLibre` type (QQuickItem) with `styleLoaded`, `mapFullyLoaded` and `firstFrameReady` signals
-  - Qt Location plugin (`maplibre`) for use with Qt Location's `Map` QML type
-- **Coordinate utilities** — geographic ↔ pixel ↔ projected-metre conversions
-- **Network mode** — toggle online / offline operation globally
-- **Static (off-screen) rendering** for tile generation and testing
+- **矢量瓦片渲染** — 完整支持 [MapLibre 样式规范](https://maplibre.org/maplibre-style-spec/)
+- **多渲染后端**：OpenGL、Vulkan（Linux/Windows/Android）、Metal（macOS/iOS）、WebGL 2（WASM）
+- **交互式相机** — 平移、缩放、旋转、倾斜，支持平滑动画过渡
+- **标注 API** — 运行时添加/更新/删除点标注、线标注和面标注
+- **样式图层与数据源管理** — 动态添加、修改和删除图层及数据源
+- **自定义渲染图层** — 通过 `CustomLayerHostInterface` 注入自定义渲染
+- **三种集成方式**：
+  - C++ `QMapLibre::Map` + `QMapLibre::MapWidget`（QRhiWidget）
+  - QML `MapLibre` 类型（QQuickItem），包含 `styleLoaded`、`mapFullyLoaded` 和 `firstFrameReady` 信号
+  - Qt Location 插件（`maplibre`），与 Qt Location 的 `Map` QML 类型配合使用
+- **坐标工具** — 地理坐标 ↔ 屏幕像素 ↔ 投影米坐标互相转换
+- **网络模式** — 全局切换在线/离线操作
+- **静态（离屏）渲染** — 适用于瓦片生成和测试
 
 ## Qt support
 
