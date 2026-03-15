@@ -4,7 +4,9 @@
 
 #include "layer_manager_p.hpp"
 
-#include <mbgl/geojson/geojson.hpp>
+#include "conversion_p.hpp"
+
+#include <mbgl/util/geojson.hpp>
 #include <mbgl/style/conversion/coordinate.hpp>
 #include <mbgl/style/conversion/geojson.hpp>
 #include <mbgl/style/conversion/layer.hpp>

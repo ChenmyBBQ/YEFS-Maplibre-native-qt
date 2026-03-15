@@ -5,6 +5,7 @@
 #include "style_manager_p.hpp"
 
 #include "value_conversion_p.hpp"
+#include "conversion_p.hpp"
 
 #include <mbgl/style/conversion/layer.hpp>
 #include <mbgl/style/conversion_impl.hpp>

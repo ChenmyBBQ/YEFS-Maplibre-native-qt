@@ -6,6 +6,7 @@
 
 #include <mbgl/style/style_property.hpp>
 #include <mbgl/util/feature.hpp>
+#include <mbgl/util/color.hpp>
 
 #include <QtCore/QString>
 #include <QtCore/QVariant>
