@@ -26,6 +26,7 @@ set(MLNQtCore_Headers
     style/style_parameter.hpp
     style/filter_parameter.hpp
     style/image_parameter.hpp
+    style/style_expression.hpp
     style/layer_parameter.hpp
     style/source_parameter.hpp
 )
@@ -61,6 +62,9 @@ target_sources(
         ${MLNQtCore_Headers}
         conversion_p.hpp
         geojson.cpp geojson_p.hpp
+        layer_manager.cpp layer_manager_p.hpp
+        style_manager.cpp style_manager_p.hpp
+        value_conversion.cpp value_conversion_p.hpp
         map_observer.cpp map_observer_p.hpp
         map_renderer.cpp map_renderer_p.hpp
         map.cpp map_p.hpp
@@ -79,6 +83,7 @@ target_sources(
         rendering/renderer_observer_p.hpp
 
         style/style_parameter.cpp
+        style/style_expression.cpp
         style/filter_parameter.cpp
         style/image_parameter.cpp
         style/layer_parameter.cpp

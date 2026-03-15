@@ -16,6 +16,8 @@
 #include <QtCore/QSize>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
+#include <QtCore/QVariantList>
+#include <QtCore/QVariantMap>
 #include <QtGui/QImage>
 
 #include <memory>
@@ -45,6 +47,17 @@ class Q_MAPLIBRE_CORE_EXPORT Map : public QObject {
     Q_PROPERTY(QMargins margins READ margins WRITE setMargins)
 
 public:
+    enum StyleErrorCode {
+        NoStyleError = 0,
+        StyleLayerNotFoundError,
+        StyleUnsupportedLayerTypeError,
+        StyleUnsupportedPropertyError,
+        StyleInvalidPatchError,
+        StylePropertyApplyError,
+        StyleInvalidExpressionError,
+        StyleStateStyleNotFoundError,
+    };
+
     enum MapChange {
         MapChangeRegionWillChange = 0,
         MapChangeRegionWillChangeAnimated,
@@ -135,6 +148,20 @@ public:
 
     bool setLayoutProperty(const QString &layerId, const QString &propertyName, const QVariant &value);
     bool setPaintProperty(const QString &layerId, const QString &propertyName, const QVariant &value);
+    bool setLayoutExpression(const QString &layerId, const QString &propertyName, const QVariantList &expression);
+    bool setPaintExpression(const QString &layerId, const QString &propertyName, const QVariantList &expression);
+    bool applyStylePatch(const QString &layerId, const QVariantMap &patch);
+    bool registerLayerStateStyle(const QString &layerId, const QString &stateId, const QVariantMap &patch);
+    bool setLayerStateStyleActive(const QString &layerId, const QString &stateId, bool active);
+    bool unregisterLayerStateStyle(const QString &layerId, const QString &stateId);
+    [[nodiscard]] QStringList activeLayerStateStyles(const QString &layerId) const;
+    void beginStyleBatch();
+    void commitStyleBatch();
+    [[nodiscard]] bool isStyleBatchActive() const;
+    [[nodiscard]] StyleErrorCode lastStyleErrorCode() const;
+    [[nodiscard]] QString lastStyleErrorMessage() const;
+    [[nodiscard]] QVariantMap styleSnapshot(const QString &layerId) const;
+    [[nodiscard]] QVariantMap stylePropertySnapshot(const QString &layerId, const QStringList &propertyNames) const;
 
     [[nodiscard]] bool isFullyLoaded() const;
 
@@ -156,10 +183,10 @@ public:
     void setMargins(const QMargins &margins);
     [[nodiscard]] QMargins margins() const;
 
-    void addSource(const QString &id, const QVariantMap &params);
-    bool sourceExists(const QString &id);
-    void updateSource(const QString &id, const QVariantMap &params);
-    void removeSource(const QString &id);
+    bool addSource(const QString &id, const QVariantMap &params);
+    [[nodiscard]] bool sourceExists(const QString &id) const;
+    bool updateSource(const QString &id, const QVariantMap &params);
+    bool removeSource(const QString &id);
 
     void addImage(const QString &id, const QImage &sprite);
     void removeImage(const QString &id);
@@ -167,11 +194,23 @@ public:
     void addCustomLayer(const QString &id,
                         std::unique_ptr<CustomLayerHostInterface> host,
                         const QString &before = QString());
-    void addLayer(const QString &id, const QVariantMap &params, const QString &before = QString());
-    bool layerExists(const QString &id);
-    void removeLayer(const QString &id);
+    bool addLayer(const QString &id, const QVariantMap &params, const QString &before = QString());
+    [[nodiscard]] bool layerExists(const QString &id) const;
+    bool removeLayer(const QString &id);
 
     [[nodiscard]] QVector<QString> layerIds() const;
+    bool setLayerVisible(const QString &id, bool visible);
+    [[nodiscard]] bool isLayerVisible(const QString &id) const;
+    [[nodiscard]] bool moveLayer(const QString &id, const QString &before = QString());
+    [[nodiscard]] bool setLayerGroup(const QString &id, const QString &groupId);
+    [[nodiscard]] QVector<QString> groupLayerIds(const QString &groupId) const;
+    bool setGroupVisible(const QString &groupId, bool visible);
+    bool removeGroup(const QString &groupId);
+    [[nodiscard]] QVariantMap layerMetadata(const QString &id) const;
+    [[nodiscard]] QVariantList layerMetadataSnapshot() const;
+    void beginLayerBatch();
+    void commitLayerBatch();
+    [[nodiscard]] bool isLayerBatchActive() const;
 
     void setFilter(const QString &layerId, const QVariant &filter);
     [[nodiscard]] QVariant getFilter(const QString &layerId) const;
@@ -220,6 +259,19 @@ signals:
     void mapChanged(Map::MapChange);
     void mapLoadingFailed(Map::MapLoadingFailure, const QString &reason);
     void copyrightsChanged(const QString &copyrightsHtml);
+    void sourceAdded(const QString &id);
+    void sourceUpdated(const QString &id);
+    void sourceRemoved(const QString &id);
+    void layerAdded(const QString &id);
+    void layerRemoved(const QString &id);
+    void layerVisibilityChanged(const QString &id, bool visible);
+    void layerOrderChanged();
+    void layerGroupChanged(const QString &id, const QString &groupId);
+    void layerBatchCommitted();
+    void layoutPropertyChanged(const QString &layerId, const QString &propertyName);
+    void paintPropertyChanged(const QString &layerId, const QString &propertyName);
+    void stylePatchApplied(const QString &layerId);
+    void styleBatchCommitted();
 
     void staticRenderFinished(const QString &error);
 
@@ -233,5 +285,6 @@ private:
 
 Q_DECLARE_METATYPE(QMapLibre::Map::MapChange);
 Q_DECLARE_METATYPE(QMapLibre::Map::MapLoadingFailure);
+Q_DECLARE_METATYPE(QMapLibre::Map::StyleErrorCode);
 
 #endif // QMAPLIBRE_MAP_H

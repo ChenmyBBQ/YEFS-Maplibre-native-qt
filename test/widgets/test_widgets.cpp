@@ -6,6 +6,10 @@
 #include "map_widget_tester.hpp"
 #include "map_window.hpp"
 
+#include <QMapLibre/Map>
+
+#include "style/style_expression.hpp"
+
 #include <QDebug>
 #include <QTest>
 
@@ -19,6 +23,8 @@ private slots:
     void testGLWidgetMapLibreProvider();
     void testGLWidgetDocking();
     void testGLWidgetStyle();
+    void testStyleExpressionBuilder();
+    void testLayerStateStyle();
 };
 
 void TestWidgets::testGLWidgetNoProvider() {
@@ -79,6 +85,63 @@ void TestWidgets::testGLWidgetStyle() {
     QTest::qWait(100);
     tester->initializeAnimation();
     QTest::qWait(tester->selfTest());
+}
+
+void TestWidgets::testStyleExpressionBuilder() {
+    const QVariantList stateExpr = QMapLibre::StyleExpression::booleanFeatureState(QStringLiteral("selected"));
+    QCOMPARE(stateExpr.value(0).toString(), QStringLiteral("boolean"));
+
+    const QVariantList featureStateExpr = stateExpr.value(1).toList();
+    QCOMPARE(featureStateExpr.value(0).toString(), QStringLiteral("feature-state"));
+    QCOMPARE(featureStateExpr.value(1).toString(), QStringLiteral("selected"));
+    QCOMPARE(stateExpr.value(2).toBool(), false);
+
+    const QVariantList caseExpr = QMapLibre::StyleExpression::caseWhen(
+        QVariant::fromValue(QMapLibre::StyleExpression::eq(QVariant::fromValue(QMapLibre::StyleExpression::get(QStringLiteral("status"))),
+                                                           QStringLiteral("alarm"))),
+        QStringLiteral("red"),
+        QStringLiteral("blue"));
+    QCOMPARE(caseExpr.value(0).toString(), QStringLiteral("case"));
+    QCOMPARE(caseExpr.value(2).toString(), QStringLiteral("red"));
+    QCOMPARE(caseExpr.value(3).toString(), QStringLiteral("blue"));
+}
+
+void TestWidgets::testLayerStateStyle() {
+    QMapLibre::Map map(nullptr, QMapLibre::Settings(), QSize(256, 256), 1);
+    map.setStyleJson(QStringLiteral("{\"version\":8,\"sources\":{},\"layers\":[]}"));
+
+    QVariantMap source;
+    source.insert(QStringLiteral("type"), QStringLiteral("geojson"));
+    source.insert(QStringLiteral("data"), QByteArray("{\"type\":\"FeatureCollection\",\"features\":[]}"));
+    map.addSource(QStringLiteral("shape-source"), source);
+
+    QVariantMap paint;
+    paint.insert(QStringLiteral("fill-opacity"), 0.4);
+
+    QVariantMap layer;
+    layer.insert(QStringLiteral("type"), QStringLiteral("fill"));
+    layer.insert(QStringLiteral("source"), QStringLiteral("shape-source"));
+    layer.insert(QStringLiteral("paint"), paint);
+    map.addLayer(QStringLiteral("shape-layer"), layer);
+
+    QVariantMap statePaint;
+    statePaint.insert(QStringLiteral("fill-opacity"), 0.9);
+    QVariantMap statePatch;
+    statePatch.insert(QStringLiteral("paint"), statePaint);
+
+    QVERIFY(map.registerLayerStateStyle(QStringLiteral("shape-layer"), QStringLiteral("selected"), statePatch));
+    QVERIFY(map.setLayerStateStyleActive(QStringLiteral("shape-layer"), QStringLiteral("selected"), true));
+    QCOMPARE(map.activeLayerStateStyles(QStringLiteral("shape-layer")), QStringList{QStringLiteral("selected")});
+
+    QVariantMap snapshot = map.stylePropertySnapshot(QStringLiteral("shape-layer"), {QStringLiteral("fill-opacity")});
+    QCOMPARE(snapshot.value(QStringLiteral("fill-opacity")).toMap().value(QStringLiteral("value")).toDouble(), 0.9);
+
+    QVERIFY(map.setLayerStateStyleActive(QStringLiteral("shape-layer"), QStringLiteral("selected"), false));
+    snapshot = map.stylePropertySnapshot(QStringLiteral("shape-layer"), {QStringLiteral("fill-opacity")});
+    QCOMPARE(snapshot.value(QStringLiteral("fill-opacity")).toMap().value(QStringLiteral("value")).toDouble(), 0.4);
+
+    QVERIFY(!map.setLayerStateStyleActive(QStringLiteral("shape-layer"), QStringLiteral("missing"), true));
+    QCOMPARE(map.lastStyleErrorCode(), QMapLibre::Map::StyleStateStyleNotFoundError);
 }
 
 // NOLINTNEXTLINE(misc-const-correctness)

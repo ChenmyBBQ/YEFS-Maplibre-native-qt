@@ -25,6 +25,9 @@
 
 namespace QMapLibre {
 
+class LayerManager;
+class StyleManager;
+
 class MapPrivate : public QObject, public mbgl::RendererFrontend {
     Q_OBJECT
 
@@ -50,15 +53,10 @@ public:
     void destroyRenderer();
     void render();
 
-    using PropertySetter = std::optional<mbgl::style::conversion::Error> (mbgl::style::Layer::*)(
-        const std::string &, const mbgl::style::conversion::Convertible &);
-    [[nodiscard]] bool setProperty(const PropertySetter &setter,
-                                   const QString &layerId,
-                                   const QString &name,
-                                   const QVariant &value) const;
-
     mbgl::EdgeInsets margins;
     std::unique_ptr<mbgl::Map> mapObj;
+    std::unique_ptr<LayerManager> layerManager;
+    std::unique_ptr<StyleManager> styleManager;
 
     // Backend-specific helpers to expose the most recent color texture
     // Safe to call from the GUI thread.
