@@ -35,7 +35,7 @@ public:
             // Disable scissor test to ensure full framebuffer is cleared
             gl->glDisable(GL_SCISSOR_TEST);
 
-            // Clear the framebuffer
+            // Clear the framebuffer to prevent stale content artifacts.
             gl->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         }
@@ -206,11 +206,9 @@ void OpenGLRendererBackend::updateRenderer(const mbgl::Size &newSize, uint32_t f
                 // Framebuffer is ready
             }
 
-            // 初始清除：用与 QML 遮罩相同的蓝色 (#b8d9f0) 初始化纹理内容，
-            // 避免 VRAM 残留（粉色/洋红）在遮罩淡出时透出；
-            // alpha=1.0 确保纹理被视为完全不透明，防止 Qt 场景图 Alpha 混合到窗口背景
+            // Initial clear to prevent VRAM garbage (pink/magenta) from showing.
             gl->glViewport(0, 0, width, height);
-            gl->glClearColor(0.722f, 0.851f, 0.941f, 1.0f);  // #b8d9f0
+            gl->glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         }
 
